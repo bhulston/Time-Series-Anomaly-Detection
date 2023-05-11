@@ -10,7 +10,7 @@ The manufacturing industry is highly susceptible to rare events, such as machine
 
 In recent years, deep learning techniques have emerged as a promising approach to address this challenge by enabling predictive maintenance, anomaly detection, and fault diagnosis. In this report, we aim to utilize deep learning techniques to predict sensor break events in a paper manufacturing setting. Specifically, we will employ an encoder for dimension reduction and logistic regression for prediction models. By accurately predicting sensor break events, we can prevent costly downtime and improve the overall efficiency of the paper manufacturing process. When a break does happen, it can take a long time to fix and leads to increasingly large losses in profit.
 
-These breaks are often instantaneous events that happen immediately after a bolt breaks. This makes it extremely difficult to capture any meaningful relationships within the data as is. We are hoping that by using an encoding technique, we can extract some unique features/insights from the latent encoding space. In the end, we compare our results to a paper that uses this dataset with XGBoost, and a logistic regression model.
+These breaks are often instantaneous events that happen immediately after a bolt breaks. This makes it extremely difficult to capture any meaningful relationships within the data as is. We are hoping that by using an encoding technique, we can extract some unique features/insights from the latent encoding space. In the end, we compare our results to the original paper that uses this dataset with XGBoost, and a logistic regression model.
 
 # 2.0 Dataset
 We will be working with a multivariate time series dataset collected from the network of sensors in a pulp-and-paper mill. The dataset contains 18,398 observations of sensors every 2 minutes and includes the following columns:
@@ -21,7 +21,8 @@ We will be working with a multivariate time series dataset collected from the ne
 This dataset is highly imbalanced, because the failure events occur not frequently. After we grouped data by 5 timesteps, there are only about 4% of the positive (break failure) class. 
 
 # 3.0 Data Preprocessing
-Test Data
+
+## Test Data
 First, we obtained the indices of all 1 values for the outcome variable y, and use the last 20 breaks and the corresponding periods before them as our test data. For the test set, we use the same preprocessing method as the training set. 
 
 ## Data Cleaning 
@@ -30,9 +31,7 @@ We used one-hot encoding to represent the categorical variable 'x28' in our pred
 ## Data Manipulation - time blocks
 In order to process the data in a meaningful way that uses previous timesteps as features too, we create time blocks, which are flattened intervals of time as our individual samples. 
 
-For positive instances, we collected all 1's with the previous 5 timesteps and removed them from the training set. We dropped all 1 values and the time and y variables since they are not useful in our model building. We flattened each 5 rows into 1 row, resulting in a dataset of positive samples with 340 columns (68 x 5) per observation. For negative instances, we separated the 0 values rows into groups of 5 continuous time steps. We flattened each group of 5 rows into 1 row, using the same method as in the positive instances dataset to make 1 observation per window size. 
-
-Next, we used MinMax Scale to rescale all the features in both positive and negative datasets to make sure that all features are on a similar scale and contribute equally to the training process.
+For positive instances, we collected all 1's with the previous 5 timesteps and removed them from the training set. We dropped all 1 values and the time and y variables since they are not useful in our model building. We flattened each 5 rows into 1 row, resulting in a dataset of positive samples with 340 columns (68 x 5) per observation. For negative instances, we separated the 0 values rows into groups of 5 continuous time steps. Values are scaled too.
 
 # 4.0 Dataset Creation
 Because our task is to build a model to capture extremely low-frequency events (4% of all blocked time data), there are some issues when it comes to building a model that can generalize well and has strong recall. In order to create our new sample, we used resampling techniques to create a bootstrapped sample of the positive time blocks. Using this resampling technique, we created a new set of positives that consisted of 2,000 samples.
@@ -65,9 +64,10 @@ Our Autoencoder function can be found in appendix B, but at its core, the functi
 We can use this UDF to run 3-fold cross-validation on our training data. We create nested for loops of all our possible hyper parameters, meaning that in each loop we have a model with unique combinations of parameters. For each model, we then run our cross-validation and take the average of our results on the validation data. This helps us identify the encoders with the best encoding and decoding ability. 
 
 We selected our best 3 combinations which you can see below:
-3 Dense layers, 256 neurons, bath_norm = False
-4 Dense layers, 256 neurons, bath_norm = False
-5 Dense  layers, 256 neurons, bath_norm = False
+
+* 3 Dense layers, 256 neurons, bath_norm = False
+* 4 Dense layers, 256 neurons, bath_norm = False
+* 5 Dense  layers, 256 neurons, bath_norm = False
 
 After running some more tests, it seemed like the more complex model with 5 layers and 256 neurons in the first layer would give us the best combination of generalization and identification power. 
 
