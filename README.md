@@ -1,4 +1,4 @@
-# Time-Series-Anomaly-Detection
+# Time-Series-Anomaly-Detection-With-Encoders
 Applying a unique approach to an existing research paper on rare event detection in time-series data using an encoder-logistic regression ensemble.
 
 The general approach used here is to: Train and tune an autoencoder, extract just the encoder as a custom transformer to get the latent features, lay a logistic regression on top of the pipeline for classification of rare events.
